@@ -18,3 +18,11 @@ Thumbs.db
 # output folder (you may want to exclude files when we publish!)
 /out/*
 !/out
+
+# copernicus data store credentials
+.Renviron
+.cdsapirc
+
+# raw data
+/data/raw/*.nc
+/data/raw/*/*.nc

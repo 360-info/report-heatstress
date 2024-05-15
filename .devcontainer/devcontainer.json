@@ -23,13 +23,14 @@
 		/* add apt packages (eg. system requirements for r packages) here.
 		   note that they are not frozen */
 		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-			"packages": "libudunits2-dev,libxtst6,libxt6,libmagick++-dev,librsvg2-dev"
+			"packages": "libudunits2-dev,libxtst6,libxt6,libmagick++-dev,librsvg2-dev,libgeos-dev,libgdal-dev,libsodium-dev,nco,cdo"
 		},
 		/* add additional r packages here */
 		"ghcr.io/rocker-org/devcontainer-features/r-packages:1": {
-			"packages": "github::rstudio/renv,tidyverse,here,httpgd,janitor,github::360-info/themes360info"
+			"packages": "github::rstudio/renv,tidyverse,here,httpgd,janitor,ecmwfr,sf,exactextractr,github::360-info/themes360info,github::wmgeolab/rgeoboundaries,github::markpayneatwork/ClimateOperators"
 		}
 	},
+
 
 	/* Use 'postCreateCommand' to run commands after the container is created
 	  (for example, copy some extra fonts to /usr/local/share/fonts) */
