@@ -1,0 +1,137 @@
+---
+title: Untitled
+subtitle: A slightly longer title
+format:
+  360-analysis-html: default
+author: James Goldie
+date: last-modified
+code-fold: true
+---
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(countrycode)
+library(docxtractr)
+library(here)
+```
+
+# Heatwave days
+
+The authors have provided global, continent, region and country estimates backing Figures 1 and 2 as an `.RData` file.
+
+We'll combine these into one spreadsheet and export as a CSV. We'll also add ISO2 codes so that we can attach flags in the country profiles.
+
+We'll retain the continent and region estimates by leaving `country` and `region` missing, and put the global estimate under the `Global` continent.
+
+```{r}
+#| label: tidy-hdwdays-data
+
+here("data", "zhao-etal-2024", "raw", "hwdays.RData") |> load()
+
+# bind the data together, add iso2 codes, and sort. 
+global |>
+  rename(continent = location) |>
+  bind_rows(conti, reg, countr) |>
+  as_tibble() |>
+  mutate(iso2 = countrycode(country, "country.name", "iso2c")) |>
+  select(continent, region, iso2, country, everything()) |>
+  arrange(continent, region, iso2) |>
+  write_csv(here("data", "zhao-etal-2024", "heatwave-days.csv"))
+```
+
+# Mortality
+
+Mortality estimates are provided in the supplementary materials as tables in Word documents. We can use `{docextractr}` to get them out.
+
+The tables aren't too bad structurally, but regions (with continents) and countries (within regions) have been distinguished using two and four leading spaces, respectively. We'll pull those out manually.
+
+```{r}
+#| label: extract-tables
+here("data", "zhao-etal-2024", "raw", "pmed.1004364.s015.docx") |>
+  read_docx() ->
+doc
+
+doc |> docx_extract_tbl(1, trim = FALSE) -> df
+
+# choosing to process only the excess deaths and excess death rates (per 10M)
+region_table_index <- tribble(
+  ~ id, ~ measure,       ~ population,
+  15,   "Excess deaths", "Country-specific age standardisation",
+  16,   "Excess deaths", "WHO standard population",
+  # 17,   "Excess death ratio", "Country-specific age standardisation",
+  # 18,   "Excess death ratio", "WHO standard population",
+  19,   "Excess deaths per 10M residents", "Country-specific age standardisation",
+  20,   "Excess deaths per 10M residents", "WHO standard population")
+income_table_index <- tribble(
+  ~ id, ~ measure, ~ population,
+  21,   "Excess deaths", "Country-specific age standardisation",
+  22,   "Excess deaths", "WHO standard population",
+  23,   "Excess deaths per 10M residents", "Country-specific age standardisation",
+  24,   "Excess deaths per 10M residents", "WHO standard population"
+  # 25,   "Excess death ratio", "Country-specific age standardisation",
+  # 26,   "Excess death ratio", "WHO standard population"
+  )
+
+here("data", "zhao-etal-2024", "raw", paste0("pmed.1004364.s0", id, ".docx"))
+
+# this function imports each table and tidies it up
+tidy_regional_supp_table <- function(path) {
+  path |>
+    read_docx() |>
+    docx_extract_tbl(1, trim = FALSE) |>
+    rename(continent = `X.`) |>
+    # pull regions/countries out based on preceding whitespace
+    mutate(
+      country = if_else(
+        str_starts(continent, "        "),
+        str_trim(continent),
+        NA_character_),
+      region = if_else(
+        str_starts(continent, "    "),
+        str_trim(continent),
+        NA_character_),
+      continent = str_trim(continent)) |>
+    # add iso2 code
+    mutate(iso2 = countrycode(country, "country.name", "iso2c")) |>
+    select(continent, region, iso2, country, everything()) |>
+    # split confidence intervals out
+    pivot_longer(
+      -c(continent, region, iso2, country),
+      names_to = "statistic",
+      values_to = "value") |>
+    separate_wider_delim(value,
+      delim = regex("[^\\d\\.\\-]+"),
+      names = c("central", "lower", "upper", NA),
+      too_few = "align_start") |>
+    # tidy up categories and value types
+    mutate(
+      across(c("central", "upper", "lower"), as.numeric),
+      statistic = str_replace_all(statistic, c(
+        "(?<=\\d{4})\\.(?=\\d{4})" = "-",
+        "\\." = " ",
+        "^X\\s?" = ""
+        )))
+}
+
+# tidy each of the specified tables up
+region_table_index |>
+  mutate(
+    path = here("data", "zhao-etal-2024", "raw",
+      paste0("pmed.1004364.s0", id, ".docx")),
+    table = map(path, tidy_regional_supp_table)) ->
+regional_data_nested
+
+# unnest and write out to disk (make NAs blank to avoid iso2 conflict)
+regional_data_nested |>
+  unnest(table) |>
+  select(-path) |>
+  mutate(
+    statistic = case_match(statistic,
+      "Change per decade a" ~ "Pct change per decade",
+      .default = statistic)) |>
+  write_csv(
+    here("data", "zhao-etal-2024", "heatwave-mortality-stats-country.csv"),
+    na = "")
+```
+
