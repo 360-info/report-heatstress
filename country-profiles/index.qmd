@@ -1,0 +1,128 @@
+---
+# omit title and subtitle if you're doing a custom title block
+title: Heatwaves
+# subtitle: A thing here
+# for social previews
+pagetitle: Heatwave exposure
+description: See which countries are most vulnerable to heatwaves
+twitter-card:
+  site: "@360info_global"
+  image: "/folder/example.png"
+open-graph:
+  image: "/folder/example.png"
+resources:
+  - /data/zhao-etal-2024/heatwave-*.csv
+format:
+  360-embed-html:
+    css: style.css
+# metadata for modals and embed sharing functionality
+360embed:
+  byline: James Goldie, 360info
+  data-source: XXX
+  type: map
+  aspect-ratio: 20 / 19
+  min-height: 500px
+  max-height: 893px
+  bg-colour: white
+  title: "Interactive: title"
+  repo: report-example
+  domain: https://example.360visuals.org
+  path: /map/  
+  fragments: state, month
+  about: |
+    Here's a place to **tell people** and [link to things](https://example.com)!
+---
+
+```{ojs}
+//| label: download-data
+import { aq, op } from "@uwdata/arquero" 
+
+daysAll = aq.loadCSV("/data/zhao-etal-2024/heatwave-days.csv")
+exposureAll = aq.loadCSV("/data/zhao-etal-2024/heatwave-mortality-stats-country.csv")
+```
+
+```{ojs}
+//| label: get-countries
+allCountries = daysAll
+  .select("iso2", "country")
+  .union(exposureAll.select("iso2", "country"))
+  .filter(d => d.iso2 !== null)
+  .objects()
+
+selectedFlag = selectedCountry.length == 1 ?
+  html`<img class="header-flag" src="https://hatscripts.github.io/circle-flags/flags/${selectedCountry[0].iso2.toLowerCase()}.svg">` :
+  html``
+
+selectedCountry.length == 1 ?
+  html`<h2 id="country-subhead">${selectedFlag} ${selectedCountry[0].country.toUpperCase()}</h2>` :
+  html``
+```
+
+
+```{ojs}
+//| label: country-input
+viewof selectedCountry = Inputs.search(allCountries, {
+  placeholder: "Choose a country",
+  columns: ["iso2", "country"],
+  datalist: allCountries.map(d => d.country),
+  format: d => "",
+  required: false,
+  query: "Australia"
+})
+```
+
+```{ojs}
+//| label: filter-to-country
+countryDays = selectedCountry.length == 1 ?
+  daysAll
+    .params({ selectedCountry: selectedCountry[0] })
+    .filter(d => d.iso2 == selectedCountry.iso2)
+    .objects() : []
+countryExposure = selectedCountry.length == 1 ?
+  exposureAll
+    .params({ selectedCountry: selectedCountry[0] })
+    .filter(d => d.iso2 == selectedCountry.iso2)
+    .filter(d => d.measure == "Excess deaths per 10M residents")
+    .filter(d => d.population == "Country-specific age standardisation")
+    .objects() : []
+
+countryDays
+countryExposure
+```
+
+### Number of days
+ 
+```{ojs}
+//| label: plot-num-days
+exposureSeries = [
+  { period: "1980-\n1989", days: countryDays[0]["1980-1989"] },
+  { period: "1990-\n1999", days: countryDays[0]["1990-1999"] },
+  { period: "2000-\n2009", days: countryDays[0]["2000-2009"] },
+  { period: "2010-\n2019", days: countryDays[0]["2010-2019"] }
+]
+
+daysUp = countryDays[0]["Change_per_decade"] > 0
+
+html`<p class="${daysUp ? "increase" : "decrease"}">${daysUp ? "▲" : "▼"} ${countryDays[0]["Change_per_decade"]} days per decade</p>`
+
+Plot.plot({
+  marks: [
+    Plot.barY(exposureSeries, {
+      x: "period",
+      y: "days",
+      fill: "lightpink",
+      rx: 5,
+      ry: 5
+    })
+  ],
+  height: 100,
+  width: 200,
+  style: {
+    fontFamily: "Roboto Condensed"
+  }
+})
+```
+
+{{< include _popups/_buttons.qmd >}}
+
+{{< include _popups/_dialogs.qmd >}}

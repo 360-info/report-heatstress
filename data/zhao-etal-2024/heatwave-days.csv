@@ -5,8 +5,8 @@ Africa,Northern Africa,LY,Libya,11.1,11.1,12.2,10.1,11.2,-0.2,-1.8
 Africa,Northern Africa,MA,Morocco,14.7,15,14.8,14.4,14.6,-0.2,-1.4
 Africa,Northern Africa,SD,Sudan,10.3,10.2,10.7,9.8,10.7,0.1,1
 Africa,Northern Africa,TN,Tunisia,14.9,15.3,14.8,14.8,14.8,-0.1,-0.7
-Africa,Northern Africa,NA,NA,12.5,12.4,12.9,11.8,12.9,0,NA
-Africa,Northern Africa,NA,ESH,11.7,13,12,10.7,11.3,-0.6,-5.1
+Africa,Northern Africa,,,12.5,12.4,12.9,11.8,12.9,0,
+Africa,Northern Africa,,ESH,11.7,13,12,10.7,11.3,-0.6,-5.1
 Africa,Sub-Saharan Africa,AO,Angola,6.8,7,8.6,5.4,6.1,-0.6,-8.8
 Africa,Sub-Saharan Africa,BF,Burkina Faso,13.3,14.3,13.6,11.6,13.7,-0.4,-3
 Africa,Sub-Saharan Africa,BI,Burundi,4.2,3.2,3.1,5.7,4.9,0.8,19
@@ -54,8 +54,8 @@ Africa,Sub-Saharan Africa,UG,Uganda,10.1,9.3,10.1,8.8,12.4,0.8,7.9
 Africa,Sub-Saharan Africa,ZA,South Africa,11.6,11.7,12.7,10.5,11.5,-0.3,-2.6
 Africa,Sub-Saharan Africa,ZM,Zambia,10.6,10.3,13.5,9.7,8.8,-0.8,-7.5
 Africa,Sub-Saharan Africa,ZW,Zimbabwe,11.3,10.9,13.8,10.8,9.7,-0.7,-6.2
-Africa,Sub-Saharan Africa,NA,NA,10,10.1,11.1,8.9,9.8,-0.3,NA
-Africa,NA,NA,NA,10.5,10.6,11.5,9.5,10.4,-0.3,NA
+Africa,Sub-Saharan Africa,,,10,10.1,11.1,8.9,9.8,-0.3,
+Africa,,,,10.5,10.6,11.5,9.5,10.4,-0.3,
 Americas,Latin American and Caribbean,AG,Antigua and Barbuda,10.2,9.4,11.6,11.2,8.8,-0.2,-2
 Americas,Latin American and Caribbean,AR,Argentina,11.7,11.7,11.5,11.5,11.9,0.1,0.9
 Americas,Latin American and Caribbean,BB,Barbados,5,3.2,6.3,2.7,7.7,1,20
@@ -89,23 +89,23 @@ Americas,Latin American and Caribbean,TT,Trinidad and Tobago,4.8,3.4,6.1,2.9,6.7
 Americas,Latin American and Caribbean,UY,Uruguay,12.5,13.2,11.2,13.2,12.5,-0,-0
 Americas,Latin American and Caribbean,VC,St. Vincent and the Grenadines,5,3.2,6.3,2.7,7.7,1,20
 Americas,Latin American and Caribbean,VE,"Venezuela, RB",8.1,6.9,10.3,6.7,8.4,0.1,1.2
-Americas,Latin American and Caribbean,NA,NA,10.1,9.6,10.6,9.7,10.4,0.2,NA
+Americas,Latin American and Caribbean,,,10.1,9.6,10.6,9.7,10.4,0.2,
 Americas,Northern America,CA,Canada,14.9,14.6,15.1,14.8,15,0.1,0.7
 Americas,Northern America,US,United States,15.7,15.7,15.6,15.4,16,0.1,0.6
-Americas,Northern America,NA,NA,15.4,15.3,15.4,15.2,15.7,0.1,NA
-Americas,NA,NA,NA,12.6,12.3,12.9,12.3,12.9,0.1,NA
+Americas,Northern America,,,15.4,15.3,15.4,15.2,15.7,0.1,
+Americas,,,,12.6,12.3,12.9,12.3,12.9,0.1,
 Asia,Central Asia,KG,Kyrgyz Republic,16.5,15.4,14.9,17.1,18.6,1.2,7.3
 Asia,Central Asia,KZ,Kazakhstan,15.7,16.2,15.3,14.6,16.6,0.1,0.6
 Asia,Central Asia,TJ,Tajikistan,16.5,15.3,15.5,16.7,18.6,1.1,6.7
 Asia,Central Asia,TM,Turkmenistan,15.8,15.8,14.8,15.2,17.4,0.5,3.2
 Asia,Central Asia,UZ,Uzbekistan,16.3,16.4,15.5,15.7,17.7,0.4,2.5
-Asia,Central Asia,NA,NA,15.9,16.1,15.2,15.1,17.1,0.3,NA
+Asia,Central Asia,,,15.9,16.1,15.2,15.1,17.1,0.3,
 Asia,Eastern Asia,CN,China,15.5,15.3,15.2,15.2,16.3,0.3,1.9
 Asia,Eastern Asia,JP,Japan,15.7,14.9,16,14.2,17.7,0.7,4.5
 Asia,Eastern Asia,KP,"Korea, Dem. People's Rep.",15.9,15.7,15.5,14.8,17.5,0.5,3.1
 Asia,Eastern Asia,KR,"Korea, Rep.",17.1,15.1,17.5,16.6,19.2,1.1,6.4
 Asia,Eastern Asia,MN,Mongolia,15,14.5,13.5,15.4,16.4,0.8,5.3
-Asia,Eastern Asia,NA,NA,15.5,15.2,15.1,15.2,16.5,0.4,NA
+Asia,Eastern Asia,,,15.5,15.2,15.1,15.2,16.5,0.4,
 Asia,South-eastern Asia,BN,Brunei Darussalam,8.5,7.6,9.9,7.1,9.6,0.3,3.5
 Asia,South-eastern Asia,ID,Indonesia,5.7,4.9,5.2,5.1,7.4,0.7,12.3
 Asia,South-eastern Asia,KH,Cambodia,14.7,12.9,17.4,13,15.4,0.3,2
@@ -117,7 +117,7 @@ Asia,South-eastern Asia,SG,Singapore,10.8,8.9,9.3,13,12,1.3,12
 Asia,South-eastern Asia,TH,Thailand,15.3,14,17.6,13.5,16.3,0.3,2
 Asia,South-eastern Asia,TL,Timor-Leste,8,7.3,8.2,6.9,9.8,0.6,7.5
 Asia,South-eastern Asia,VN,Vietnam,13.9,12.5,15.4,13.2,14.5,0.4,2.9
-Asia,South-eastern Asia,NA,NA,9.5,8.7,10,8.4,10.8,0.5,NA
+Asia,South-eastern Asia,,,9.5,8.7,10,8.4,10.8,0.5,
 Asia,Southern Asia,AF,Afghanistan,14.7,14,13.4,15,16.5,0.9,6.1
 Asia,Southern Asia,BD,Bangladesh,10.1,8.8,9.9,10.4,11.4,0.8,7.9
 Asia,Southern Asia,BT,Bhutan,12.9,12.7,12.1,13.6,13.2,0.3,2.3
@@ -127,7 +127,7 @@ Asia,Southern Asia,LK,Sri Lanka,10.4,12.3,10.2,7.7,11.2,-0.6,-5.8
 Asia,Southern Asia,MV,Maldives,16,13.7,15.9,18,16.3,1,6.2
 Asia,Southern Asia,NP,Nepal,11.5,12.1,12.4,9.6,12,-0.3,-2.6
 Asia,Southern Asia,PK,Pakistan,13.7,13.2,12.4,14.2,15,0.7,5.1
-Asia,Southern Asia,NA,NA,14.7,14.2,14.2,14.6,15.7,0.5,NA
+Asia,Southern Asia,,,14.7,14.2,14.2,14.6,15.7,0.5,
 Asia,Western Asia,AE,United Arab Emirates,14.3,13,15.3,12.4,16.5,0.8,5.6
 Asia,Western Asia,AM,Armenia,15.9,15.3,13.5,15.6,19.2,1.4,8.8
 Asia,Western Asia,AZ,Azerbaijan,15.3,15.6,12.7,14.5,18.3,1,6.5
@@ -146,8 +146,8 @@ Asia,Western Asia,SA,Saudi Arabia,14.8,15.4,13.9,13.5,16.3,0.2,1.4
 Asia,Western Asia,SY,Syrian Arab Republic,15.1,15.4,14.5,14.5,16.1,0.2,1.3
 Asia,Western Asia,TR,Turkey,16.2,16.1,15,15.6,18.1,0.7,4.3
 Asia,Western Asia,YE,"Yemen, Rep.",11.1,9.6,9.4,10,15.4,1.8,16.2
-Asia,Western Asia,NA,NA,14.8,14.8,13.7,13.9,16.6,0.6,NA
-Asia,NA,NA,NA,14.1,13.7,13.7,13.5,15.3,0.5,NA
+Asia,Western Asia,,,14.8,14.8,13.7,13.9,16.6,0.6,
+Asia,,,,14.1,13.7,13.7,13.5,15.3,0.5,
 Europe,Eastern Europe,BG,Bulgaria,16.3,16.5,14.6,16,18,0.6,3.7
 Europe,Eastern Europe,BY,Belarus,15.8,16.2,16.9,13,17,-0.1,-0.6
 Europe,Eastern Europe,CZ,Czech Republic,15.9,15.1,15.8,15.6,17,0.6,3.8
@@ -158,7 +158,7 @@ Europe,Eastern Europe,RO,Romania,16.4,16.8,15.2,15.3,18.3,0.5,3
 Europe,Eastern Europe,RU,Russian Federation,15.7,15.7,15.5,15.2,16.6,0.2,1.3
 Europe,Eastern Europe,SK,Slovak Republic,16.5,16.2,15.7,16.2,18,0.6,3.6
 Europe,Eastern Europe,UA,Ukraine,15.8,15.8,16.8,13.6,17.2,0.1,0.6
-Europe,Eastern Europe,NA,NA,15.8,15.7,15.5,15.1,16.7,0.3,NA
+Europe,Eastern Europe,,,15.8,15.7,15.5,15.1,16.7,0.3,
 Europe,Northern Europe,DK,Denmark,14.4,13.4,15.4,14.4,14.5,0.2,1.4
 Europe,Northern Europe,EE,Estonia,15.7,16.4,16.4,12.7,17.4,-0.1,-0.6
 Europe,Northern Europe,FI,Finland,15.7,16.1,15.9,14.1,16.6,-0,-0
@@ -169,7 +169,7 @@ Europe,Northern Europe,LT,Lithuania,15.5,15.7,16.5,13.8,15.9,-0.2,-1.3
 Europe,Northern Europe,LV,Latvia,15.7,16.2,16.4,13.3,16.8,-0.1,-0.6
 Europe,Northern Europe,NO,Norway,15.5,14.9,16.3,16.7,14,-0.2,-1.3
 Europe,Northern Europe,SE,Sweden,15.8,15.8,16.6,16.1,14.9,-0.3,-1.9
-Europe,Northern Europe,NA,NA,15.2,15.1,15.8,15,14.8,-0.2,NA
+Europe,Northern Europe,,,15.2,15.1,15.8,15,14.8,-0.2,
 Europe,Southern Europe,AD,Andorra,15.9,17.1,15.4,16.1,14.9,-0.6,-3.8
 Europe,Southern Europe,AL,Albania,17.6,17.5,16.7,17.6,18.6,0.4,2.3
 Europe,Southern Europe,BA,Bosnia and Herzegovina,17,17.2,15.4,17.8,17.6,0.4,2.4
@@ -184,8 +184,8 @@ Europe,Southern Europe,PT,Portugal,15.2,15.4,15.6,14.8,15.3,-0.1,-0.7
 Europe,Southern Europe,RS,Serbia,16.8,16.8,15.4,16.8,18.3,0.6,3.6
 Europe,Southern Europe,SI,Slovenia,17.3,17,16.4,17.3,18.3,0.5,2.9
 Europe,Southern Europe,SM,San Marino,17.6,17,17.7,18.4,17.2,0.1,0.6
-Europe,Southern Europe,NA,NA,16.4,16.5,16,16.2,16.8,0.1,NA
-Europe,Southern Europe,NA,VAT,16.6,15.7,15.2,19.1,16.6,0.7,4.2
+Europe,Southern Europe,,,16.4,16.5,16,16.2,16.8,0.1,
+Europe,Southern Europe,,VAT,16.6,15.7,15.2,19.1,16.6,0.7,4.2
 Europe,Western Europe,AT,Austria,16.4,16.3,16.2,15.6,17.5,0.3,1.8
 Europe,Western Europe,BE,Belgium,15.3,15.3,16.5,15.2,14.3,-0.4,-2.6
 Europe,Western Europe,CH,Switzerland,16.9,16.6,17.3,16.8,17.1,0.1,0.6
@@ -195,12 +195,12 @@ Europe,Western Europe,LI,Liechtenstein,15.9,15.2,16.5,15.2,16.6,0.3,1.9
 Europe,Western Europe,LU,Luxembourg,16.1,15.8,17.5,15.4,15.5,-0.3,-1.9
 Europe,Western Europe,MC,Monaco,16,17.8,14.4,16.8,15.1,-0.6,-3.8
 Europe,Western Europe,NL,Netherlands,13.8,13.4,15.1,13.9,12.8,-0.3,-2.2
-Europe,Western Europe,NA,NA,15.3,14.7,16.2,15.2,15.2,0,NA
-Europe,NA,NA,NA,15.7,15.6,15.7,15.2,16.3,0.2,NA
-Global,NA,NA,NA,13.2,13,13.4,12.6,13.7,0.1,NA
+Europe,Western Europe,,,15.3,14.7,16.2,15.2,15.2,0,
+Europe,,,,15.7,15.6,15.7,15.2,16.3,0.2,
+Global,,,,13.2,13,13.4,12.6,13.7,0.1,
 Oceania,Australia and New Zealand,AU,Australia,12.3,12.3,13.1,12,11.9,-0.2,-1.6
 Oceania,Australia and New Zealand,NZ,New Zealand,13,11.3,14.2,12.2,14.4,0.7,5.4
-Oceania,Australia and New Zealand,NA,NA,12.5,12,13.4,12,12.6,0,NA
+Oceania,Australia and New Zealand,,,12.5,12,13.4,12,12.6,0,
 Oceania,Other regions in Oceania,FJ,Fiji,15.3,15.4,13.5,18.2,14,0,0
 Oceania,Other regions in Oceania,FM,"Micronesia, Fed. Sts.",5.5,3.7,4.6,5,8.8,1.6,29.1
 Oceania,Other regions in Oceania,NR,Nauru,5.4,5.7,8.4,2.7,4.7,-0.9,-16.7
@@ -208,5 +208,5 @@ Oceania,Other regions in Oceania,PG,Papua New Guinea,5,5.6,5.8,3.8,4.7,-0.5,-10
 Oceania,Other regions in Oceania,SB,Solomon Islands,6,5.8,7,3.8,7.3,0.1,1.7
 Oceania,Other regions in Oceania,TV,Tuvalu,10,11.6,7.6,12.1,8.7,-0.4,-4
 Oceania,Other regions in Oceania,VU,Vanuatu,11.1,12.7,12.2,9.3,10.1,-1.1,-9.9
-Oceania,Other regions in Oceania,NA,NA,6.5,7.1,7.1,5.5,6.3,-0.4,NA
-Oceania,NA,NA,NA,10.2,10.1,10.9,9.5,10.1,-0.1,NA
+Oceania,Other regions in Oceania,,,6.5,7.1,7.1,5.5,6.3,-0.4,
+Oceania,,,,10.2,10.1,10.9,9.5,10.1,-0.1,

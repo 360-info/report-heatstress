@@ -1,0 +1,17 @@
+#country-subhead {
+  margin-block: 0;
+}
+
+#country-subhead .header-flag {
+  width: 0.7em;
+  display: inline;
+  filter: drop-shadow(0px 2px 2px #00000033);
+}
+
+/* change statements */
+.increase {
+  color: red;
+}
+.decrease {
+  color: green;
+}

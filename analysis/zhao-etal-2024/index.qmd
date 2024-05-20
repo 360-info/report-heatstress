@@ -1,6 +1,5 @@
 ---
-title: Untitled
-subtitle: A slightly longer title
+title: Heatwave exposure statistics
 format:
   360-analysis-html: default
 author: James Goldie
@@ -29,7 +28,8 @@ We'll retain the continent and region estimates by leaving `country` and `region
 
 here("data", "zhao-etal-2024", "raw", "hwdays.RData") |> load()
 
-# bind the data together, add iso2 codes, and sort. 
+# bind the data together, add iso2 codes, and sort
+# (write out NAs as blank to avoid iso2 conflict)
 global |>
   rename(continent = location) |>
   bind_rows(conti, reg, countr) |>
@@ -37,7 +37,8 @@ global |>
   mutate(iso2 = countrycode(country, "country.name", "iso2c")) |>
   select(continent, region, iso2, country, everything()) |>
   arrange(continent, region, iso2) |>
-  write_csv(here("data", "zhao-etal-2024", "heatwave-days.csv"))
+  write_csv(here("data", "zhao-etal-2024", "heatwave-days.csv"),
+    na = "")
 ```
 
 # Mortality
@@ -47,35 +48,7 @@ Mortality estimates are provided in the supplementary materials as tables in Wor
 The tables aren't too bad structurally, but regions (with continents) and countries (within regions) have been distinguished using two and four leading spaces, respectively. We'll pull those out manually.
 
 ```{r}
-#| label: extract-tables
-here("data", "zhao-etal-2024", "raw", "pmed.1004364.s015.docx") |>
-  read_docx() ->
-doc
-
-doc |> docx_extract_tbl(1, trim = FALSE) -> df
-
-# choosing to process only the excess deaths and excess death rates (per 10M)
-region_table_index <- tribble(
-  ~ id, ~ measure,       ~ population,
-  15,   "Excess deaths", "Country-specific age standardisation",
-  16,   "Excess deaths", "WHO standard population",
-  # 17,   "Excess death ratio", "Country-specific age standardisation",
-  # 18,   "Excess death ratio", "WHO standard population",
-  19,   "Excess deaths per 10M residents", "Country-specific age standardisation",
-  20,   "Excess deaths per 10M residents", "WHO standard population")
-income_table_index <- tribble(
-  ~ id, ~ measure, ~ population,
-  21,   "Excess deaths", "Country-specific age standardisation",
-  22,   "Excess deaths", "WHO standard population",
-  23,   "Excess deaths per 10M residents", "Country-specific age standardisation",
-  24,   "Excess deaths per 10M residents", "WHO standard population"
-  # 25,   "Excess death ratio", "Country-specific age standardisation",
-  # 26,   "Excess death ratio", "WHO standard population"
-  )
-
-here("data", "zhao-etal-2024", "raw", paste0("pmed.1004364.s0", id, ".docx"))
-
-# this function imports each table and tidies it up
+#| label: extract-table-fn
 tidy_regional_supp_table <- function(path) {
   path |>
     read_docx() |>
@@ -113,6 +86,22 @@ tidy_regional_supp_table <- function(path) {
         "^X\\s?" = ""
         )))
 }
+```
+
+Let's apply that function to each of the supplementary tables of interest:
+
+```{r}
+#| label: extract-tables
+
+# choosing to process only the excess deaths and excess death rates (per 10M)
+region_table_index <- tribble(
+  ~ id, ~ measure,       ~ population,
+  15,   "Excess deaths", "Country-specific age standardisation",
+  16,   "Excess deaths", "WHO standard population",
+  # 17,   "Excess death ratio", "Country-specific age standardisation",
+  # 18,   "Excess death ratio", "WHO standard population",
+  19,   "Excess deaths per 10M residents", "Country-specific age standardisation",
+  20,   "Excess deaths per 10M residents", "WHO standard population")
 
 # tidy each of the specified tables up
 region_table_index |>
@@ -135,3 +124,17 @@ regional_data_nested |>
     na = "")
 ```
 
+## Income groups
+
+```{r}
+#| label: income-groups
+income_table_index <- tribble(
+  ~ id, ~ measure, ~ population,
+  21,   "Excess deaths", "Country-specific age standardisation",
+  22,   "Excess deaths", "WHO standard population",
+  23,   "Excess deaths per 10M residents", "Country-specific age standardisation",
+  24,   "Excess deaths per 10M residents", "WHO standard population"
+  # 25,   "Excess death ratio", "Country-specific age standardisation",
+  # 26,   "Excess death ratio", "WHO standard population"
+)
+```
