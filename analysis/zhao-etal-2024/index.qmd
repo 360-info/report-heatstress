@@ -34,8 +34,15 @@ global |>
   rename(continent = location) |>
   bind_rows(conti, reg, countr) |>
   as_tibble() |>
-  mutate(iso2 = countrycode(country, "country.name", "iso2c")) |>
-  select(continent, region, iso2, country, everything()) |>
+  mutate(
+    location_type = case_when(
+      !is.na(country)   ~ "country",
+      !is.na(region)    ~ "region",
+      !is.na(continent) ~ "continent",
+      TRUE              ~ "unknown"
+    ),
+    iso2 = countrycode(country, "country.name", "iso2c")) |>
+  select(location_type, continent, region, iso2, country, everything()) |>
   arrange(continent, region, iso2) |>
   write_csv(here("data", "zhao-etal-2024", "heatwave-days.csv"),
     na = "")
@@ -53,21 +60,28 @@ tidy_regional_supp_table <- function(path) {
   path |>
     read_docx() |>
     docx_extract_tbl(1, trim = FALSE) |>
-    rename(continent = `X.`) |>
+    rename(location = `X.`) |>
     # pull regions/countries out based on preceding whitespace
     mutate(
       country = if_else(
-        str_starts(continent, "        "),
-        str_trim(continent),
+        str_starts(location, "        \\S"),
+        str_trim(location),
         NA_character_),
       region = if_else(
-        str_starts(continent, "    "),
-        str_trim(continent),
+        str_starts(location, "    \\S"),
+        str_trim(location),
         NA_character_),
-      continent = str_trim(continent)) |>
+      continent = if_else(
+        str_starts(location, "\\S"),
+        str_trim(location),
+        NA_character_)) |>
+    fill(continent) |>
+    group_by(continent) |>
+    fill(region) |>
     # add iso2 code
     mutate(iso2 = countrycode(country, "country.name", "iso2c")) |>
     select(continent, region, iso2, country, everything()) |>
+    select(-location) |>
     # split confidence intervals out
     pivot_longer(
       -c(continent, region, iso2, country),
@@ -79,6 +93,12 @@ tidy_regional_supp_table <- function(path) {
       too_few = "align_start") |>
     # tidy up categories and value types
     mutate(
+      location_type = case_when(
+        !is.na(country)   ~ "country",
+        !is.na(region)    ~ "region",
+        !is.na(continent) ~ "continent",
+        TRUE              ~ "unknown"
+      ),
       across(c("central", "upper", "lower"), as.numeric),
       statistic = str_replace_all(statistic, c(
         "(?<=\\d{4})\\.(?=\\d{4})" = "-",
@@ -115,6 +135,7 @@ regional_data_nested
 regional_data_nested |>
   unnest(table) |>
   select(-path) |>
+  select(measure, population, location_type, everything()) |>
   mutate(
     statistic = case_match(statistic,
       "Change per decade a" ~ "Pct change per decade",

@@ -45,42 +45,6 @@ header#title-block-header p {
   margin-block-end: 0;
 }
 
-
-/* shrink header elements at lower widths */
-@media (max-width: 45em) {
-  
-  header#title-block-header h1 
-  {
-    font-size: 130%;
-  }
-
-  header#title-block-header p 
-  {
-    font-size: 100%;
-    font-weight: bold;
-  }
-
-  .inputForm {
-    transform: scale(0.9);
-    transform-origin: bottom left;
-  }
-}
-
-@media (max-width: 34em) {
-  
-  header#title-block-header h1 
-  {
-    font-size: 120%;
-  }
-
-  header#title-block-header p 
-  {
-    font-size: 80%;
-    font-weight: bold;
-  }
-}
-
-
 .embedcode {
   font-size: 60%;
   padding: 1em;
@@ -101,8 +65,3 @@ header#title-block-header p {
   font-family: "JetBrains Mono", monospace;
   white-space: pre-wrap;
 }
-
-.embedcode pre .code-copy-button {
-
-}
-

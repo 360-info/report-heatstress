@@ -15,10 +15,11 @@ resources:
 format:
   360-embed-html:
     css: style.css
+    anchor-sections: false
 # metadata for modals and embed sharing functionality
 360embed:
   byline: James Goldie, 360info
-  data-source: XXX
+  data-source: Zhao et al. (2024)
   type: map
   aspect-ratio: 20 / 19
   min-height: 500px
@@ -43,85 +44,179 @@ exposureAll = aq.loadCSV("/data/zhao-etal-2024/heatwave-mortality-stats-country.
 
 ```{ojs}
 //| label: get-countries
+exposureCountries = exposureAll
+  .select("location_type", "iso2", "country", "region", "continent")
+
 allCountries = daysAll
-  .select("iso2", "country")
-  .union(exposureAll.select("iso2", "country"))
-  .filter(d => d.iso2 !== null)
+  .select("location_type", "iso2", "country", "region", "continent")
+  .union(exposureCountries)
+  // exclude iso2 null but country defined
+  .filter(d => d.location_type != "country" || d.iso2 !== null)
+  .derive({ location: d => d.country || d.region || d.continent })
+  .orderby("location")
   .objects()
 
-selectedFlag = selectedCountry.length == 1 ?
+selectedFlag =
+  selectedCountry.length == 1 && selectedCountry.location_type == "country" ?
   html`<img class="header-flag" src="https://hatscripts.github.io/circle-flags/flags/${selectedCountry[0].iso2.toLowerCase()}.svg">` :
   html``
-
-selectedCountry.length == 1 ?
-  html`<h2 id="country-subhead">${selectedFlag} ${selectedCountry[0].country.toUpperCase()}</h2>` :
-  html``
 ```
-
 
 ```{ojs}
 //| label: country-input
 viewof selectedCountry = Inputs.search(allCountries, {
-  placeholder: "Choose a country",
-  columns: ["iso2", "country"],
-  datalist: allCountries.map(d => d.country),
+  placeholder: "for a country or region",
+  datalist: allCountries.map(d => d.location),
   format: d => "",
+  label: "🔍 Search",
+  // exact matches only (as some regions are similar to country names)
+  filter: q => (d => d.location == q),
   required: false,
-  query: "Australia"
+  query: "Global"
 })
+```
+
+::::{#noresults}
+
+```{ojs}
+//| label: noresults-display
+html`<span id="noresults-${selectedCountry.length != 1 ? "on" : "off"}"></span>`
+```
+
+#### `<i class="bi bi-exclamation-diamond-fill"></i>`{=html} Look for a country or region above to see heatwave data
+
+::::
+
+::::{#results}
+
+```{ojs}
+//| label: results-display
+html`<span id="results-${selectedCountry.length == 1 ? "on" : "off"}"></span>`
+```
+
+```{ojs}
+//| label: country-subhead
+selectedCountry.length == 1 ?
+  html`<h2>${selectedFlag} ${selectedCountry[0].location.toUpperCase()}</h2>` :
+  html``
 ```
 
 ```{ojs}
 //| label: filter-to-country
+
 countryDays = selectedCountry.length == 1 ?
   daysAll
     .params({ selectedCountry: selectedCountry[0] })
-    .filter(d => d.iso2 == selectedCountry.iso2)
+    .derive({ location: d => d.country || d.region || d.continent })
+    .filter(d => d.location == selectedCountry.location)
     .objects() : []
+
 countryExposure = selectedCountry.length == 1 ?
   exposureAll
     .params({ selectedCountry: selectedCountry[0] })
-    .filter(d => d.iso2 == selectedCountry.iso2)
+    .derive({ location: d => d.country || d.region || d.continent })
+    .filter(d => d.location == selectedCountry.location)
     .filter(d => d.measure == "Excess deaths per 10M residents")
-    .filter(d => d.population == "Country-specific age standardisation")
-    .objects() : []
-
-countryDays
-countryExposure
+    .filter(d => d.population == "Country-specific age standardisation") : []
 ```
-
-### Number of days
  
 ```{ojs}
-//| label: plot-num-days
-exposureSeries = [
+//| label: calc-num-days
+daysSeries = [
   { period: "1980-\n1989", days: countryDays[0]["1980-1989"] },
   { period: "1990-\n1999", days: countryDays[0]["1990-1999"] },
   { period: "2000-\n2009", days: countryDays[0]["2000-2009"] },
   { period: "2010-\n2019", days: countryDays[0]["2010-2019"] }
 ]
 
-daysUp = countryDays[0]["Change_per_decade"] > 0
+daysUp = selectedCountry.length == 1 ?
+  countryDays[0]["Change_per_decade"] > 0 : false
 
-html`<p class="${daysUp ? "increase" : "decrease"}">${daysUp ? "▲" : "▼"} ${countryDays[0]["Change_per_decade"]} days per decade</p>`
-
-Plot.plot({
-  marks: [
-    Plot.barY(exposureSeries, {
-      x: "period",
-      y: "days",
-      fill: "lightpink",
-      rx: 5,
-      ry: 5
-    })
-  ],
-  height: 100,
-  width: 200,
-  style: {
-    fontFamily: "Roboto Condensed"
-  }
-})
+daysChangeMessage = selectedCountry.length == 1 ?
+  html`<span class="${daysUp ? "increase" : "decrease"}">${daysUp ? "▲" : "▼"} ${countryDays[0]["Change_per_decade"]} days per decade</span>` :
+  html``
 ```
+
+### [Annual heatwave days]{.small}<br>`{ojs} daysChangeMessage`
+
+```{ojs}
+//| label: plot-num-days
+selectedCountry.length == 1 ?
+  Plot.plot({
+    marks: [
+      Plot.barY(daysSeries, {
+        x: "period",
+        y: "days",
+        fill: "lightpink",
+        rx: 5,
+        ry: 5,
+        tip: true 
+      })
+    ],
+    x: {
+      label: null
+    },
+    y: {
+      label: null
+    },
+    height: 100,
+    width: 200,
+    style: {
+      fontFamily: "Roboto Condensed"
+    }
+  }) : md``
+```
+
+```{ojs}
+//| label: calc-change-excess-deaths
+deathrateChange = countryExposure
+  .filter(d => d.statistic == "Pct change per decade")
+  .objects()
+  .map(d => d.central)
+
+rateUp = deathrateChange > 0
+
+deathrateChangeMessage = selectedCountry.length == 1 ?
+  html`<span class="${rateUp ? "increase" : "decrease"}">${rateUp ? "▲" : "▼"} ${deathrateChange}% per decade</span>` :
+  html``
+
+countrySeries = countryExposure
+  .filter(d => op.match(d.statistic, /\d{4}-\d{4}/))
+  .derive({ statistic: d => op.replace(d.statistic, "-", "-\n")})
+  .objects()
+``` 
+
+### [Annual Excess deaths per 10M residents]{.small}<br>`{ojs} deathrateChangeMessage`
+
+```{ojs}
+//| label: plot-excess-deaths
+selectedCountry.length == 1 ?
+  Plot.plot({
+    marks: [
+      Plot.barY(countrySeries, {
+        x: "statistic",
+        y: "central",
+        fill: "lightblue",
+        rx: 5,
+        ry: 5,
+        tip: true
+      })
+    ],
+    x: {
+      label: null
+    },
+    y: {
+      label: null
+    },
+    height: 100,
+    width: 200,
+    style: {
+      fontFamily: "Roboto Condensed"
+    }
+  }) : md``
+```
+
+::::
 
 {{< include _popups/_buttons.qmd >}}
 
