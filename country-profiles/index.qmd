@@ -1,10 +1,9 @@
 ---
 # omit title and subtitle if you're doing a custom title block
-title: Heatwaves
-# subtitle: A thing here
+title: Heatwave exposure
 # for social previews
 pagetitle: Heatwave exposure
-description: See which countries are most vulnerable to heatwaves
+description: How vulnerable is your part of the world?
 twitter-card:
   site: "@360info_global"
   image: "/folder/example.png"
@@ -25,13 +24,13 @@ format:
   min-height: 500px
   max-height: 893px
   bg-colour: white
-  title: "Interactive: title"
+  title: "Interactive: heatwave exposure"
   repo: report-example
-  domain: https://example.360visuals.org
-  path: /map/  
-  fragments: state, month
+  domain: https://heatwaves.360visuals.org
+  path: /country-profiles/  
+  fragments: location
   about: |
-    Here's a place to **tell people** and [link to things](https://example.com)!
+    The data for these country profiles comes from [Zhao et al. 2024](https://doi.org/10.1371/journal.pmed.1004364), \[...\]
 ---
 
 ```{ojs}
@@ -53,17 +52,33 @@ allCountries = daysAll
   // exclude iso2 null but country defined
   .filter(d => d.location_type != "country" || d.iso2 !== null)
   .derive({ location: d => d.country || d.region || d.continent })
+  // make 
+  .derive({ location_key: d => op.replace(op.lower(d.location), /\s,\./, "-") })
   .orderby("location")
   .objects()
 
 selectedFlag =
-  selectedCountry.length == 1 && selectedCountry.location_type == "country" ?
-  html`<img class="header-flag" src="https://hatscripts.github.io/circle-flags/flags/${selectedCountry[0].iso2.toLowerCase()}.svg">` :
+  selectedCountry[0].location_type == "country" ?
+  html`<img class="header-flag" aria-hidden="true" src="https://hatscripts.github.io/circle-flags/flags/${selectedCountry[0].iso2.toLowerCase()}.svg">` :
   html``
 ```
 
 ```{ojs}
 //| label: country-input
+// pre-fill location from url fragment if available (default to global)
+defaultLocation = {
+  const pageURL = new URL(window.location.href)
+  const locationChoice = pageURL.searchParams.get("location")
+  const filteredLocation = allCountries
+    .filter(d => d.location_key == locationChoice)
+
+  console.log("Location key:", locationChoice)
+  console.log("Found:", filteredLocation)
+
+  return filteredLocation.length == 1 ? filteredLocation[0].location : "Global"
+}
+
+
 viewof selectedCountry = Inputs.search(allCountries, {
   placeholder: "for a country or region",
   datalist: allCountries.map(d => d.location),
@@ -72,10 +87,10 @@ viewof selectedCountry = Inputs.search(allCountries, {
   // exact matches only (as some regions are similar to country names)
   filter: q => (d => d.location == q),
   required: false,
-  query: "Global"
+  query: defaultLocation
 })
 ```
-
+ 
 ::::{#noresults}
 
 ```{ojs}
@@ -96,28 +111,26 @@ html`<span id="results-${selectedCountry.length == 1 ? "on" : "off"}"></span>`
 
 ```{ojs}
 //| label: country-subhead
-selectedCountry.length == 1 ?
-  html`<h2>${selectedFlag} ${selectedCountry[0].location.toUpperCase()}</h2>` :
-  html``
+
+
+html`<h2>${selectedFlag} ${selectedCountry[0].location.toUpperCase()}</h2>`
 ```
 
 ```{ojs}
 //| label: filter-to-country
 
-countryDays = selectedCountry.length == 1 ?
-  daysAll
-    .params({ selectedCountry: selectedCountry[0] })
-    .derive({ location: d => d.country || d.region || d.continent })
-    .filter(d => d.location == selectedCountry.location)
-    .objects() : []
+countryDays = daysAll
+  .params({ selectedCountry: selectedCountry[0] })
+  .derive({ location: d => d.country || d.region || d.continent })
+  .filter(d => d.location == selectedCountry.location)
+  .objects()
 
-countryExposure = selectedCountry.length == 1 ?
-  exposureAll
-    .params({ selectedCountry: selectedCountry[0] })
-    .derive({ location: d => d.country || d.region || d.continent })
-    .filter(d => d.location == selectedCountry.location)
-    .filter(d => d.measure == "Excess deaths per 10M residents")
-    .filter(d => d.population == "Country-specific age standardisation") : []
+countryExposure = exposureAll
+  .params({ selectedCountry: selectedCountry[0] })
+  .derive({ location: d => d.country || d.region || d.continent })
+  .filter(d => d.location == selectedCountry.location)
+  .filter(d => d.measure == "Excess deaths per 10M residents")
+  .filter(d => d.population == "Country-specific age standardisation")
 ```
  
 ```{ojs}
@@ -129,44 +142,40 @@ daysSeries = [
   { period: "2010-\n2019", days: countryDays[0]["2010-2019"] }
 ]
 
-daysUp = selectedCountry.length == 1 ?
-  countryDays[0]["Change_per_decade"] > 0 : false
+daysUp = countryDays[0]["Change_per_decade"] > 0
 
-daysChangeMessage = selectedCountry.length == 1 ?
-  html`<span class="${daysUp ? "increase" : "decrease"}">${daysUp ? "▲" : "▼"} ${countryDays[0]["Change_per_decade"]} days per decade</span>` :
-  html``
+daysChangeMessage = html`<span class="${daysUp ? "increase" : "decrease"}">${daysUp ? "▲" : "▼"} ${countryDays[0]["Change_per_decade"]} days per decade</span>`
 ```
 
-### [Annual heatwave days]{.small}<br>`{ojs} daysChangeMessage`
+### [Heatwave days per year]{.small}<br>`{ojs} daysChangeMessage`
 
 ```{ojs}
 //| label: plot-num-days
-selectedCountry.length == 1 ?
-  Plot.plot({
-    marks: [
-      Plot.barY(daysSeries, {
-        x: "period",
-        y: "days",
-        fill: "lightpink",
-        rx: 5,
-        ry: 5,
-        tip: true 
-      })
-    ],
-    x: {
-      label: null
-    },
-    y: {
-      label: null
-    },
-    height: 100,
-    width: 200,
-    style: {
-      fontFamily: "Roboto Condensed"
-    }
-  }) : md``
+Plot.plot({
+  marks: [
+    Plot.barY(daysSeries, {
+      x: "period",
+      y: "days",
+      fill: "lightpink",
+      rx: 5,
+      ry: 5,
+      tip: true 
+    })
+  ],
+  x: {
+    label: null
+  },
+  y: {
+    label: null
+  },
+  height: 100,
+  width: 200,
+  style: {
+    fontFamily: "Roboto Condensed"
+  }
+})
 ```
-
+ 
 ```{ojs}
 //| label: calc-change-excess-deaths
 deathrateChange = countryExposure
@@ -176,9 +185,8 @@ deathrateChange = countryExposure
 
 rateUp = deathrateChange > 0
 
-deathrateChangeMessage = selectedCountry.length == 1 ?
-  html`<span class="${rateUp ? "increase" : "decrease"}">${rateUp ? "▲" : "▼"} ${deathrateChange}% per decade</span>` :
-  html``
+deathrateChangeMessage =
+  html`<span class="${rateUp ? "increase" : "decrease"}">${rateUp ? "▲" : "▼"} ${deathrateChange}% per decade</span>`
 
 countrySeries = countryExposure
   .filter(d => op.match(d.statistic, /\d{4}-\d{4}/))
@@ -186,34 +194,33 @@ countrySeries = countryExposure
   .objects()
 ``` 
 
-### [Annual Excess deaths per 10M residents]{.small}<br>`{ojs} deathrateChangeMessage`
+### [Excess deaths per 10M residents per year]{.small}<br>`{ojs} deathrateChangeMessage`
 
 ```{ojs}
 //| label: plot-excess-deaths
-selectedCountry.length == 1 ?
-  Plot.plot({
-    marks: [
-      Plot.barY(countrySeries, {
-        x: "statistic",
-        y: "central",
-        fill: "lightblue",
-        rx: 5,
-        ry: 5,
-        tip: true
-      })
-    ],
-    x: {
-      label: null
-    },
-    y: {
-      label: null
-    },
-    height: 100,
-    width: 200,
-    style: {
-      fontFamily: "Roboto Condensed"
-    }
-  }) : md``
+Plot.plot({
+  marks: [
+    Plot.barY(countrySeries, {
+      x: "statistic",
+      y: "central",
+      fill: "lightblue",
+      rx: 5,
+      ry: 5,
+      tip: true
+    })
+  ],
+  x: {
+    label: null
+  },
+  y: {
+    label: null
+  },
+  height: 100,
+  width: 200,
+  style: {
+    fontFamily: "Roboto Condensed"
+  }
+})
 ```
 
 ::::
