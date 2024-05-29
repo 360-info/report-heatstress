@@ -24,5 +24,7 @@ Thumbs.db
 .cdsapirc
 
 # raw data
-/data/raw/*.nc
-/data/raw/*/*.nc
+/data/raw/old/*.nc
+/data/raw/old/*/*.nc
+/data/cds/raw
+/data/test
