@@ -21,8 +21,8 @@ format:
   data-source: Zhao et al. (2024)
   type: map
   aspect-ratio: 20 / 19
-  min-height: 500px
-  max-height: 893px
+  min-height: 630px
+  max-height: 635px
   bg-colour: white
   title: "Interactive: heatwave exposure"
   repo: report-example
@@ -30,7 +30,7 @@ format:
   path: /country-profiles/  
   fragments: location
   about: |
-    The data for these country profiles comes from [Zhao et al. 2024](https://doi.org/10.1371/journal.pmed.1004364), \[...\]
+    The data for these country profiles comes from [Zhao et al. 2024](https://doi.org/10.1371/journal.pmed.1004364).
 ---
 
 ```{ojs}
