@@ -15,10 +15,6 @@ Thumbs.db
 # quarto
 /.quarto/
 
-# output folder (you may want to exclude files when we publish!)
-/out/*
-!/out
-
 # copernicus data store credentials
 .Renviron
 .cdsapirc
@@ -27,4 +23,5 @@ Thumbs.db
 /data/raw/old/*.nc
 /data/raw/old/*/*.nc
 /data/cds/raw
+/data/cds/annual
 /data/test

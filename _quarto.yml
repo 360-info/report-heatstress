@@ -3,9 +3,9 @@ project:
   output-dir: out
   render:
     - "README.qmd"
-    - "analysis/*/*.qmd"
-    - "analysis/*.qmd"
-    - "*/*.qmd"
+    # - "analysis/*/*.qmd"
+    # - "analysis/*.qmd"
+    - "country-profiles/index.qmd"
   post-render: cp -f out/README.md README.md
   resources:
     - /data/zhao-etal-2024/heatwave-*.csv
