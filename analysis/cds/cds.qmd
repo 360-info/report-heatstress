@@ -15,6 +15,9 @@ library(ecmwfr)
 library(sf)
 library(ClimateOperators)
 library(rgeoboundaries)
+library(terra)
+library(exactextractr)
+library(countrycode)
 library(here)
 ```
 
@@ -106,9 +109,6 @@ tibble(
   mutate(fname = map_chr(req_obj, ~ pluck(.x, "target"))) ->
 seq_files
 
-# temp for downloading
-seq_files |> filter(between(start, 1994, 2004)) -> missing_files
-
 seq_files |>
   filter(!file.exists(file.path(raw_dir, fname))) |>
   arrange(desc(start)) ->
@@ -140,7 +140,6 @@ unzip_and_unlink <- function(path) {
 # unzip and delete the zip files
 seq_files |>
   filter(file.exists(file.path(raw_dir, fname))) |>
-  # slice(1:2) |>
   pull(fname) |>
   walk(unzip_and_unlink, .progress = TRUE)
 ```
@@ -152,7 +151,7 @@ Once that's done, we want to time merge each of the daily files for the year and
 The thresholds we'll use are based on [Copernicus's thresholds](https://urbansis.eu/universal-thermal-climate-index) (also in their [thermofeel package docs](https://thermofeel.readthedocs.io/en/latest/guide/utci.html)):
 
 * \> +46: extreme heat stress
-* +38 to +46: very strong heat stress
+* +38 to +46: verystrong heat stress
 * +32 to +38: strong heat stress
 * +26 to +32: moderate heat stress
 * +9 to +26: no thermal stress
@@ -166,55 +165,63 @@ The thresholds we'll use are based on [Copernicus's thresholds](https://urbansis
 #| label: join-and-count-fn
 join_and_count <- function(year, lower, upper) {
 
-  # get a list of the dailies nc files for the specified year
+  # # get a list of the dailies nc files for the specified year
   tibble(
     path = list.files(here("data", "cds", "raw", "daily"),
       pattern = glob2rx("*.nc"),
       full.names = TRUE)) |>
-    mutate(year = as.integer(str_extract(basename(path), "\\d{4}"))) |>
-    filter(year == year) ->
+    mutate(year_file = str_extract(basename(path), "\\d{4}")) |>
+    filter(year_file == year) ->
   dailies
 
   # thresholds are [lower, upper).
   # (temperatures are in kelvin so there are no negative values)
   if (lower == -Inf) {
     compare_op <- ssl(
-      csl("setctomiss", 0), 
+      csl("-setctomiss", 0), 
       csl("-ltc", upper + 273.15))
   } else if (upper == Inf) {
     compare_op <- ssl(
-      csl("setctomiss", 0), 
+      csl("-setctomiss", 0), 
       csl("-gec", lower + 273.15))
   } else {
     compare_op <- ssl(
-      csl("setctomiss", 0),
+      csl("-setctomiss", 0),
       csl("-ltc", upper + 273.15),
-      csl("setctomiss", 0),
+      csl("-setctomiss", 0),
       csl("-gec", lower + 273.15)
     )
   }
 
-  cdo("-L", "-O",
+  out_path <- here(
+    "data", "cds", "annual",
+    paste0(year, "_", lower, "_to_", upper, ".nc"))
+
+  cdo("-L",
+    # "-O",
     # count the days
-    "-timcumsum",
+    "-yearsum",
     # drop days outside the thresholds
     compare_op,
     "-mergetime",
     paste(dailies$path, collapse = " "),
-    here("data", "cds", "raw", "annual",
-      paste0(year, "_", lower, "_to_", upper, ".nc"))
+    # here("data", "cds", "raw", "daily",
+    #   paste0("ECMWF_utci_", year, "????_v1.1_con.nc")),
+    out_path
   )
 }
 ```
 
 ```{r}
 #| label: join-and-count
-dir.create(here("data", "cds", "raw", "annual"), showWarnings = FALSE)
+dir.create(here("data", "cds", "annual"), showWarnings = FALSE)
 
 # here are the utci thresholds we want to look at
 tibble(lower = c(46, 38, 32, 26, 9, 0, -13, -27, -40, -Inf)) |>
   mutate(upper = lag(lower)) |>
-  replace_na(list(upper = Inf)) ->
+  replace_na(list(upper = Inf)) |>
+  # cutting no/cold stress for deadline
+  filter(lower %in% c(46, 38, 32, 26)) ->
 thresholds
 
 # get the available years from the dailies,
@@ -228,7 +235,9 @@ here("data", "cds", "raw", "daily") |>
 year_thresh_combos
 
 # finally, run join_and_count on each year/threshold combo
-year_thresh_combos |> pwalk(join_and_count, .progress = TRUE)
+year_thresh_combos |>
+  arrange(desc(year)) |>
+  pwalk(join_and_count, .progress = TRUE)
 ```
 
 # Boundaries
@@ -239,13 +248,174 @@ Let's start with the boundaries of countries using `{rgeoboundaries}`, as well a
 
 ```{r}
 #| label: get-boundaries
-boundaries_countries <- gb_adm0(type = "simplified")
-boundaries_india     <- gb_adm1("ind", type = "simplified")
+boundaries_countries <-
+  gb_adm0(type = "simplified") |>
+  (\(b) filter(b, !st_is_empty(b)))()
+boundaries_india <-
+  gb_adm1("ind", type = "simplified") |>
+  (\(b) filter(b, !st_is_empty(b)))() |>
+  distinct(shapeISO, .keep_all = TRUE)
 ```
 
 Now we'll use `{exactextractr}` to get the field averages for each feature, from each year/threshold .nc file:
 
-
 ```{r}
 #| label: calc-field-averages
+# read raster in with terra, then calc averages for each feature
+calc_field_averages <- function(raster_path, boundaries) {
+  tryCatch(
+  {
+    hrs_raster <- rast(raster_path)
+    boundaries |>
+      mutate(avg_hrs = exact_extract(hrs_raster, boundaries, fun = "mean")) |>
+      st_drop_geometry()
+  },
+  error = {
+    # if we can't open the file, just return NA
+    boundaries |> mutate(svg_hrs = NA_real_) |> st_drop_geometry()
+  })
+}
+
+# get the annual netcdfs, extract year/thresh info
+tibble(
+  path = list.files(
+    here("data", "cds", "annual"),
+    pattern = glob2rx("*.nc"),
+    full.names = TRUE)) |>
+  mutate(fname = basename(path)) |>
+  separate_wider_delim(fname, delim = regex("[_.]"),
+    names = c("year", "lower", NA, "upper", NA)) |>
+  mutate(across(c(year, lower, upper), as.numeric)) |>
+  arrange(desc(year)) ->
+hrs_files
+
+# calc field averages for countries and for indian states
+
+hrs_files |>
+  mutate(countries = map(path, calc_field_averages, boundaries_countries)) ->
+hrs_countries
+
+hrs_files |>
+  mutate(states = map(path, calc_field_averages, boundaries_india)) ->
+hrs_india_states
+```
+
+Finally, we'll unnest the results and write out to disk:
+
+```{r}
+#| label: unnest-tidy
+hrs_countries |>
+  mutate(hs_category = case_match(lower,
+    46 ~ "Extreme (> 46)",
+    38 ~ "Very strong (38-46)",
+    32 ~ "Strong (32-38)",
+    26 ~ "Moderate (26-32)",
+  )) |>
+  unnest_longer(countries) |>
+  unpack(countries) |>
+  select(year, lower, upper, hs_category, iso = shapeGroup, country = shapeName,
+    hours = svg_hrs) |>
+  filter(!is.nan(hours), !is.na(hours)) |>
+  filter(year < 2024) |>
+  write_csv(here("data", "cds", "heatstress-hours-countries.csv")) ->
+hrs_countries_tidy
+
+hrs_india_states |>
+  mutate(hs_category = case_match(lower,
+    46 ~ "Extreme (> 46)",
+    38 ~ "Very strong (38-46)",
+    32 ~ "Strong (32-38)",
+    26 ~ "Moderate (26-32)",
+  )) |>
+  unnest_longer(states) |>
+  unpack(states) |>
+  select(year, lower, upper, hs_category, iso = shapeISO, state = shapeName,
+    hours = svg_hrs) |>
+  filter(!is.nan(hours), !is.na(hours)) |>
+  filter(year < 2024) |>
+  write_csv(here("data", "cds", "heatstress-hours-states.csv")) ->
+hrs_india_states_tidy
+```
+
+
+
+```{r}
+#| label: quick-vis
+
+# look at some sa/sea countries
+hrs_countries_tidy |>
+  filter(iso %in% c(
+    "BRN", "KHM", "IDN", "LAO", "MYS", "MMR", "PHL", "SGP", "THA", "VNM", "TLS", "AFG", "BGD", "BTN", "IND", "IRN", "MDV", "NPL", "PAK", "LKA")) |>
+  filter(year > 2000) |>
+  filter(hs_category != "Moderate (26-32)") |>
+  mutate(hs_category = factor(hs_category, levels = c(
+    "Strong (32-38)",
+    "Very strong (38-46)",
+    "Extreme (> 46)"
+  ))) ->
+hrs_sea
+
+# run out a wideform for datawrapper, and get iso2 codes too
+hrs_sea |>
+  mutate(days = hours / 24) |>
+  select(-lower, -upper, -iso, -hours) |>
+  pivot_wider(names_from = hs_category, values_from = days, id_cols = c(year, country)) |>
+  # janitor::clean_names() |>
+  # replace_na(list(strong_32_38 = 0, very_strong_38_46 = 0, extreme_46 = 0)) |>
+  # mutate(
+  #   iso2 = countrycode(iso, "iso3c", "iso2c"),
+  #   country = paste0(":", tolower(iso2), ": ", country)) |>
+  # select(-iso2) |>
+  write_csv(here("data", "cds", "hs-datawrapper-sea.csv"), na = "0")
+
+hrs_sea |>
+  ggplot() +
+    aes(x = year, y = hours / 24) +
+    geom_col(aes(fill = hs_category)) +
+    facet_wrap(vars(country)) +
+    scale_fill_manual(values = c(
+      "Moderate (26-32)" = "gold",
+      "Strong (32-38)" = "orange",
+      "Very strong (38-46)" = "red",
+      "Extreme (> 46)" = "firebrick"
+    )) +
+    labs(
+      x = NULL, y = "Number of days",
+      title = "Heat stress increasing across Asia-Pacific",
+      fill = NULL
+    ) +
+    theme_minimal() +
+    theme(
+      legend.direction = "horizontal",
+      legend.position = "top"
+    )
+
+
+```
+
+## Heat stress compared across Asia-Pac
+
+```{r}
+#| label: compare-countries
+hrs_countries_tidy |>
+  filter(between(year, 2014, 2023)) |>
+  filter(hs_category != "Moderate (26-32)") |>
+  filter(iso %in% c(
+    "KAZ", "KGZ", "TJK", "TKM", "UZB", "CHN", "HKG", "MAC", "PRK", "JPN",
+    "MNG", "KOR", "BRN", "KHM", "IDN", "LAO", "MYS", "MMR", "PHL", "SGP",
+    "THA", "TLS", "AFG", "BGD", "BTN", "IND", "IRN", "MDV", "NPL", "PAK",
+    "LKA", "ARM", "AZE", "BHR", "CYP", "GEO", "IRQ", "ISR", "JOR", "KWT",
+    "LBN", "OMN", "QAT", "SAU", "PSE", "SYR", "TUR", "ARE", "YEM", "AUS",
+    "CXR", "CCK", "HMD", "NZL", "NFK", "FJI", "NCL", "PNG", "SLB", "VUT",
+    "GUM", "KIR", "MHL", "FSM", "NRU", "MNP", "PLW", "UMI", "ASM", "COK",
+    "PYF", "NIU", "PCN", "WSM", "TKL", "TON", "TUV", "WLF")) |>
+  group_by(country) |>
+  summarise(avg_days = sum(hours, na.rm = TRUE) / (24 * 10)) |>
+  arrange(desc(avg_days)) |>
+  mutate(country = fct_reorder(country, avg_days)) |>
+  write_csv(here("data", "heatstress-asiapac-mostdays-avgannual-2014to2023.csv")) |>
+  ggplot() +
+    aes(x = country, y = avg_days) +
+    geom_col() +
+    coord_flip()
 ```
