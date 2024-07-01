@@ -31,6 +31,12 @@
 		}
 	},
 
+	/* uncomment this and set the path to mount a local folder into the
+	   container (eg. if you don't have enough disk space for the 
+	   analysis) */
+	// "mounts": [
+	// 	"source=/path/to/external/folder,target=/workspaces/report-heatstress-asia/data/cds/raw,type=bind,consistency=cached"
+	// ],
 
 	/* Use 'postCreateCommand' to run commands after the container is created
 	  (for example, copy some extra fonts to /usr/local/share/fonts) */

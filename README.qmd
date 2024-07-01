@@ -1,14 +1,13 @@
 ---
 format: gfm
 360readme:
-  title: Title here
-  summary: One line summary here
-  repo: report-example
-  share-url: https://example.360visuals.org/example
+  title: Heat stress in Asia
+  summary: Visualises exposure to heatwaves and the excess deaths countries face from them.
+  repo: report-heatstress-asia
+  share-url: https://heatwaves.360visuals.org/country-profiles
   data-sources: |
     <ul>
-      <li><a href="https://example.com">Example 1</a></li>
-      <li><a href="https://example.com">Example 2</a></li>
+      <li><a href="https://doi.org/10.1371/journal.pmed.1004364">Zhao et al. (2024)</a></li>
     </ul>
 ---
 

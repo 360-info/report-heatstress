@@ -1,10 +1,11 @@
 
 
-# Title here
+# Heat stress in Asia
 
-### [📋 Add graphic to your story](https://example.360visuals.org/example?edshare) • [📊 Get the data](data) • [💻 Reproduce the analysis](#-reproduce-the-analysis)
+### [📋 Add graphic to your story](https://heatwaves.360visuals.org/country-profiles?edshare) • [📊 Get the data](data) • [💻 Reproduce the analysis](#-reproduce-the-analysis)
 
-One line summary here
+Visualises exposure to heatwaves and the excess deaths countries face
+from them.
 
 ## ♻️ Use + Remix rights
 
@@ -21,10 +22,8 @@ Data in these charts comes from:
 
 <ul>  
 <li>  
-<a href="https://example.com">Example 1</a>  
-</li>  
-<li>  
-<a href="https://example.com">Example 2</a>  
+<a href="https://doi.org/10.1371/journal.pmed.1004364">Zhao et
+al. (2024)</a>  
 </li>  
 </ul>
 
@@ -42,7 +41,7 @@ one of your own!), including [R](https://r-project.org) and
 [Quarto](https://quarto.org).
 
 [![Open in GitHub
-Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/360-info/report-example?quickstart=1)
+Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/360-info/report-heatstress-asia?quickstart=1)
 
 If you have Docker installed, you can build and run the container
 locally:
@@ -86,4 +85,4 @@ quarto render
 
 If you find any problems with our analysis or charts, please feel free
 to [create an
-issue](https://github.com/360-info/report-example/issues/new)!
+issue](https://github.com/360-info/report-heatstress-asia/issues/new)!
