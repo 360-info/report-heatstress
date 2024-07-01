@@ -29,6 +29,10 @@ Raw and processed data from [Zhao et al. (2024)](https://doi.org/10.1371/journal
 - `statistic`: `Overall`, `Average`, `Pct change per decade` or a decadal range
 - `central`, `lower`, `upper`: central, lower or upper estimates for the figure. Lower and upper are at a 95% confidence interval.
 
+### `/data/zhao-etal-2024/raw`
+
+Supplementary tables from [Zhao et al. (2024)](https://doi.org/10.1371/journal.pmed.1004364), which are processed and tidied by the analysis.
+
 ## `heatstress-asiapac-mosthours-2014to2023.csv`, `heatstress-asiapac-mostdays-avgannual-2014to2023.csv`
 
 Processed statistics from the above tidied data, specific to Asia-Pacific, ordered from most to least.
